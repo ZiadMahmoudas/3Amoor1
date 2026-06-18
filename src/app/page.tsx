@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useLayoutEffect } from 'react'
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion'
 import {
   Megaphone, ShoppingCart, TrendingUp, Palette, Search, Share2,
@@ -11,6 +11,7 @@ import {
   Rocket,
 } from 'lucide-react'
 import { HookRig, GsapCardFields } from '@/components/hook'
+import gsap from 'gsap'
 
 /* ─────────── Hook SVG Component (reusable) ─────────── */
 function HookSVG({ width = 55, height = 100, className = '' }: { width?: number; height?: number; className?: string }) {
@@ -147,105 +148,177 @@ function Hook3D() {
 }
 
 /* ─────────── Hook Catch Point — the red indicator on each section where hook grabs ─────────── */
-function HookCatchPoint({ visible }: { visible: boolean }) {
-  return (
-    <div className="absolute -left-2 top-1/2 -translate-y-1/2 z-30 hidden lg:block">
-      {/* The catch point dot */}
-      <motion.div
-        animate={visible ? { scale: [1, 2, 1], opacity: [0.7, 1, 0.7] } : { scale: 1, opacity: 0.2 }}
-        transition={visible ? { duration: 0.6, repeat: Infinity } : {}}
-        className="relative"
-      >
-      </motion.div>
-      {/* Horizontal fishing line from catch point to content */}
+// function HookCatchPoint({ visible }: { visible: boolean }) {
+//   return (
+//     <div className="absolute -left-2 top-1/2 -translate-y-1/2 z-30 hidden lg:block">
+//       {/* The catch point dot */}
+//       <motion.div
+//         animate={visible ? { scale: [1, 2, 1], opacity: [0.7, 1, 0.7] } : { scale: 1, opacity: 0.2 }}
+//         transition={visible ? { duration: 0.6, repeat: Infinity } : {}}
+//         className="relative"
+//       >
+//       </motion.div>
+//       {/* Horizontal fishing line from catch point to content */}
 
-    </div>
-  )
-}
+//     </div>
+//   )
+// }
 
 /* ─────────── Hook Pull Section — sections get YANKED up by the hook ─────────── */
-function HookPullSection({ children, delay = 0, className = '', index = 0 }: { children: React.ReactNode; delay?: number; className?: string; index?: number }) {
-  const [caught, setCaught] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+function HookPullSection({
+  children,
+  delay = 0,
+  className = '',
+  index = 0,
+}: {
+  children: React.ReactNode
+  delay?: number
+  className?: string
+  index?: number
+}) {
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const sparksRef = useRef<HTMLDivElement>(null)
+  const trailRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    if (!wrapperRef.current || !cardRef.current) return
+
+    const ctx = gsap.context(() => {
+      const card = cardRef.current
+      const sparks = sparksRef.current?.children
+      const trail = trailRef.current
+
+      gsap.set(card, {
+        opacity: 0,
+        y: 280 + (index % 3) * 40,
+        scaleX: 0.92,
+        scaleY: 0.92,
+        filter: 'blur(10px)',
+        rotationX: 12,
+        rotationZ: -2,
+        transformPerspective: 1200,
+        transformOrigin: 'center center',
+        willChange: 'transform, opacity, filter',
+      })
+
+      if (sparks?.length) {
+        gsap.set(sparks, {
+          x: 0,
+          y: 0,
+          scaleX: 1.5,
+          scaleY: 1.5,
+          opacity: 0,
+        })
+      }
+
+      if (trail) {
+        gsap.set(trail, {
+          opacity: 0,
+          height: 100,
+        })
+      }
+
+      const tl = gsap.timeline({
+        delay,
+        scrollTrigger: {
+          trigger: wrapperRef.current,
+          start: 'top 82%',
+          once: true,
+        },
+      })
+
+      tl.to(card, {
+        opacity: 1,
+        y: 0,
+        scaleX: 1,
+        scaleY: 1,
+        filter: 'blur(0px)',
+        rotationX: 0,
+        rotationZ: 0,
+        duration: 1.15,
+        ease: 'back.out(1.35)',
+      })
+
+      if (trail) {
+        tl.to(
+          trail,
+          {
+            opacity: 0.6,
+            duration: 0.12,
+            ease: 'power2.out',
+          },
+          '-=0.95'
+        )
+
+        tl.to(
+          trail,
+          {
+            opacity: 0,
+            height: 0,
+            duration: 1.1,
+            ease: 'power2.out',
+          },
+          '-=0.85'
+        )
+      }
+
+      if (sparks?.length) {
+        Array.from(sparks).forEach((spark, i) => {
+          tl.fromTo(
+            spark,
+            {
+              x: 0,
+              y: 0,
+              scaleX: 1.5,
+              scaleY: 1.5,
+              opacity: 1,
+            },
+            {
+              x: 25 + i * 15,
+              y: (i - 3) * 18,
+              scaleX: 0,
+              scaleY: 0,
+              opacity: 0,
+              duration: 0.8,
+              ease: 'power3.out',
+            },
+            0.28 + i * 0.04
+          )
+        })
+      }
+    }, wrapperRef)
+
+    return () => ctx.revert()
+  }, [delay, index])
 
   return (
-    <div className={`relative ${className}`}>
-      {/* Catch point indicator on left edge */}
-      <HookCatchPoint visible={caught} />
-
-      <motion.div
-        ref={ref}
-        initial={{
-          opacity: 0,
-          y: 280 + (index % 3) * 40,
-          scale: 0.92,
-          filter: 'blur(10px)',
-          rotateX: 12,
-          rotateZ: -2,
-        }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          filter: 'blur(0px)',
-          rotateX: 0,
-          rotateZ: 0,
-        }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{
-          duration: 1.3,
-          delay,
-          ease: [0.34, 1.56, 0.64, 1],
-        }}
-        onViewportEnter={() => setCaught(true)}
-        style={{ perspective: '1200px' }}
-      >
-
-        {/* Spark burst when section gets "hooked" */}
-        <AnimatePresence>
-          {caught && (
-            <motion.div
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 0 }}
-              transition={{ duration: 1.5, delay: 0.2 }}
-              className="absolute -left-2 top-1/2 -translate-y-1/2 pointer-events-none hidden lg:block"
-            >
-              {[...Array(7)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ x: 0, y: 0, scale: 1.5, opacity: 1 }}
-                  animate={{
-                    x: 25 + i * 15,
-                    y: (i - 3) * 18,
-                    scale: 0,
-                    opacity: 0,
-                  }}
-                  transition={{ duration: 0.8, delay: i * 0.04, ease: 'easeOut' }}
-                  className="absolute w-2 h-2 rounded-full bg-hook-red shadow-[0_0_6px_rgba(200,0,0,0.8)]"
-                />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Red upward trail when being pulled */}
-        <AnimatePresence>
-          {caught && (
-            <motion.div
-              initial={{ opacity: 0.6, height: 100 }}
-              animate={{ opacity: 0, height: 0 }}
-              transition={{ duration: 1.5, delay: 0.1, ease: 'easeOut' }}
-              className="absolute left-0 bottom-0 w-[2px] bg-gradient-to-t from-hook-red/40 to-transparent hidden lg:block"
+    <div ref={wrapperRef} className={`relative ${className}`}>
+      <div ref={cardRef} className="relative">
+        {/* Spark burst */}
+        <div
+          ref={sparksRef}
+          className="absolute -left-2 top-1/2 -translate-y-1/2 pointer-events-none hidden lg:block"
+        >
+          {[...Array(7)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 rounded-full bg-hook-red shadow-[0_0_6px_rgba(200,0,0,0.8)]"
             />
-          )}
-        </AnimatePresence>
+          ))}
+        </div>
+
+        {/* Red upward trail */}
+        <div
+          ref={trailRef}
+          className="absolute left-0 bottom-0 w-[2px] bg-gradient-to-t from-hook-red/40 to-transparent hidden lg:block"
+        />
 
         {children}
-      </motion.div>
+      </div>
     </div>
   )
 }
-
 /* ─────────── Counter ─────────── */
 function Counter({ end, suffix = '', duration = 2 }: { end: number; suffix?: string; duration?: number }) {
   const [count, setCount] = useState(0)
