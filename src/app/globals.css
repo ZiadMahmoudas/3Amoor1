@@ -413,9 +413,89 @@ html {
   .services-stack .gsap-card-item > div,
   .process-stack .gsap-card-item > div,
   .faq-stack .faq-stack-card {
-    min-height: auto !important;
+    /* min-height: auto !important; */
   }
 }
 #partners{
   direction: ltr;
 }
+/* ── v14: readable GSAP decks. No blank gaps, no left overflow, real card height. ── */
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.gsap-stacked-deck {
+  width: min(1040px, 100%);
+  position: relative;
+  margin-inline: auto;
+  isolation: isolate;
+  direction: rtl;
+}
+
+.gsap-stacked-deck .gsap-card-item {
+  width: 100%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+@media (min-width: 1024px) {
+  .gsap-stacked-deck {
+    overflow: hidden !important;
+    border-radius: 28px;
+  }
+
+  .services-stack .service-card {
+    /* height: 100%; */
+    /* min-height: 430px !important; */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* .services-stack .service-card > div {
+    min-height: 100%;
+    align-items: stretch;
+  } */
+
+  /* .process-stack .gsap-card-item > div {
+    min-height: 520px !important;
+  } */
+
+  .faq-stack .faq-stack-card {
+    /* min-height: 300px !important; */
+    /* display: flex;
+    flex-direction: column;
+    justify-content: center; */
+  }
+
+  .pin-spacer {
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .gsap-stacked-deck {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    display: grid;
+    gap: 16px;
+  }
+
+  .gsap-card-item {
+    position: relative !important;
+    inset: auto !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .services-stack .service-card,
+  .process-stack .gsap-card-item > div,
+  .faq-stack .faq-stack-card {
+    /* min-height: auto !important; */
+  }
+}
+
