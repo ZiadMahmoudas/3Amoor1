@@ -783,7 +783,7 @@ function PartnersSection() {
   ];
 
   return (
-    <section className="py-20 overflow-hidden direction-ltr">
+    <section className="py-20 overflow-hidden" id="partners">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <HookPullSection index={16}>
           <p className="text-center text-gray-500 text-sm mb-10">

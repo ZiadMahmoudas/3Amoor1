@@ -419,3 +419,6 @@ html {
     min-height: auto !important;
   }
 }
+#partners{
+  direction: ltr;
+}
