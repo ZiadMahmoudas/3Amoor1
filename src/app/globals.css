@@ -356,46 +356,66 @@ html {
     opacity: 1 !important;
   }
 }
-/* ─────────── GSAP Hook Pinned Card Stack ─────────── */
-.hook-cards-stack {
-  position: relative;
-  background: #0A0A0A;
+/* Hook / GSAP card stack - measured v7 */
+.gsap-stacked-deck {
+  isolation: isolate;
+  margin-inline: auto;
 }
 
-.hook-stack-card {
+.gsap-card-item {
+  width: 100%;
   transform-style: preserve-3d;
-  perspective: 1400px;
-  will-change: transform, filter;
-  box-shadow: 0 -28px 90px rgba(0, 0, 0, 0.45);
 }
 
-.hook-stack-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
+.services-stack,
+.process-stack,
+.faq-stack {
+  max-width: 1040px;
+}
+
+.faq-stack-card {
   background:
-    radial-gradient(circle at 84% 48%, rgba(200, 0, 0, 0.13), transparent 26%),
-    linear-gradient(180deg, rgba(255,255,255,0.018), transparent 34%);
+    radial-gradient(circle at 92% 40%, rgba(200, 0, 0, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+  box-shadow: 0 26px 80px rgba(0,0,0,0.34);
 }
 
-.hook-card-content {
-  min-height: 100vh;
-}
+@media (min-width: 1024px) {
+  .services-stack .gsap-card-item,
+  .process-stack .gsap-card-item,
+  .faq-stack .gsap-card-item {
+    display: block;
+  }
 
-.hook-rig {
-  contain: layout paint;
+  .services-stack .gsap-card-item > div,
+  .process-stack .gsap-card-item > div,
+  .faq-stack .gsap-card-item > div {
+    /* height: 100%; */
+  }
+
+  .services-stack .service-card,
+  .process-stack .gsap-card-item > div,
+  .faq-stack .faq-stack-card {
+    box-shadow: 0 28px 90px rgba(0,0,0,0.42);
+  }
 }
 
 @media (max-width: 1023px) {
-  .hook-stack-card {
-    min-height: auto;
-    transform: none !important;
-    filter: none !important;
+  .gsap-stacked-deck {
+    height: auto !important;
+    display: grid;
+    gap: 16px;
   }
 
-  .hook-card-content {
-    min-height: auto;
+  .gsap-card-item {
+    position: relative !important;
+    inset: auto !important;
+    transform: none;
+  }
+
+  .services-stack .gsap-card-item > div,
+  .process-stack .gsap-card-item > div,
+  .faq-stack .faq-stack-card {
+    min-height: auto !important;
   }
 }

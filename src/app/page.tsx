@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion'
-import { HookCardsStack, HookRig, HookStackCard } from '@/components/hook'
 import {
   Megaphone, ShoppingCart, TrendingUp, Palette, Search, Share2,
   Globe, ChevronDown, Menu, X, Phone, Mail, MapPin, ArrowUp,
@@ -11,6 +10,7 @@ import {
   LineChart, Lightbulb, PenTool, Video, Smartphone,
   Rocket,
 } from 'lucide-react'
+import { HookRig, GsapCardFields } from '@/components/hook'
 
 /* ─────────── Hook SVG Component (reusable) ─────────── */
 function HookSVG({ width = 55, height = 100, className = '' }: { width?: number; height?: number; className?: string }) {
@@ -146,17 +146,104 @@ function Hook3D() {
   )
 }
 
-/* ─────────── Hook Pull Section — lightweight content wrapper inside pinned cards ─────────── */
-function HookPullSection({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode
-  delay?: number
-  className?: string
-  index?: number
-}) {
-  return <div className={`relative ${className}`}>{children}</div>
+/* ─────────── Hook Catch Point — the red indicator on each section where hook grabs ─────────── */
+function HookCatchPoint({ visible }: { visible: boolean }) {
+  return (
+    <div className="absolute -left-2 top-1/2 -translate-y-1/2 z-30 hidden lg:block">
+      {/* The catch point dot */}
+      <motion.div
+        animate={visible ? { scale: [1, 2, 1], opacity: [0.7, 1, 0.7] } : { scale: 1, opacity: 0.2 }}
+        transition={visible ? { duration: 0.6, repeat: Infinity } : {}}
+        className="relative"
+      >
+      </motion.div>
+      {/* Horizontal fishing line from catch point to content */}
+
+    </div>
+  )
+}
+
+/* ─────────── Hook Pull Section — sections get YANKED up by the hook ─────────── */
+function HookPullSection({ children, delay = 0, className = '', index = 0 }: { children: React.ReactNode; delay?: number; className?: string; index?: number }) {
+  const [caught, setCaught] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  return (
+    <div className={`relative ${className}`}>
+      {/* Catch point indicator on left edge */}
+      <HookCatchPoint visible={caught} />
+
+      <motion.div
+        ref={ref}
+        initial={{
+          opacity: 0,
+          y: 280 + (index % 3) * 40,
+          scale: 0.92,
+          filter: 'blur(10px)',
+          rotateX: 12,
+          rotateZ: -2,
+        }}
+        whileInView={{
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: 'blur(0px)',
+          rotateX: 0,
+          rotateZ: 0,
+        }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{
+          duration: 1.3,
+          delay,
+          ease: [0.34, 1.56, 0.64, 1],
+        }}
+        onViewportEnter={() => setCaught(true)}
+        style={{ perspective: '1200px' }}
+      >
+
+        {/* Spark burst when section gets "hooked" */}
+        <AnimatePresence>
+          {caught && (
+            <motion.div
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0 }}
+              transition={{ duration: 1.5, delay: 0.2 }}
+              className="absolute -left-2 top-1/2 -translate-y-1/2 pointer-events-none hidden lg:block"
+            >
+              {[...Array(7)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ x: 0, y: 0, scale: 1.5, opacity: 1 }}
+                  animate={{
+                    x: 25 + i * 15,
+                    y: (i - 3) * 18,
+                    scale: 0,
+                    opacity: 0,
+                  }}
+                  transition={{ duration: 0.8, delay: i * 0.04, ease: 'easeOut' }}
+                  className="absolute w-2 h-2 rounded-full bg-hook-red shadow-[0_0_6px_rgba(200,0,0,0.8)]"
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Red upward trail when being pulled */}
+        <AnimatePresence>
+          {caught && (
+            <motion.div
+              initial={{ opacity: 0.6, height: 100 }}
+              animate={{ opacity: 0, height: 0 }}
+              transition={{ duration: 1.5, delay: 0.1, ease: 'easeOut' }}
+              className="absolute left-0 bottom-0 w-[2px] bg-gradient-to-t from-hook-red/40 to-transparent hidden lg:block"
+            />
+          )}
+        </AnimatePresence>
+
+        {children}
+      </motion.div>
+    </div>
+  )
 }
 
 /* ─────────── Counter ─────────── */
@@ -196,27 +283,11 @@ function SectionBadge({ text }: { text: string }) {
 /* ─────────── Navbar ─────────── */
 function Navbar() {
   const [scrolled, setScrolled] = useState(false)
-  const [hidden, setHidden] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-
   useEffect(() => {
-    let lastY = window.scrollY
-
-    const handleScroll = () => {
-      const currentY = window.scrollY
-      setScrolled(currentY > 50)
-
-      if (currentY > lastY && currentY > 120) {
-        setHidden(true)
-      } else {
-        setHidden(false)
-      }
-
-      lastY = currentY
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    const h = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', h)
+    return () => window.removeEventListener('scroll', h)
   }, [])
 
   const links = [
@@ -231,11 +302,11 @@ function Navbar() {
   return (
     <motion.nav
       initial={{ y: -100 }}
-      animate={{ y: hidden ? -110 : 0 }}
-      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-      className={`fixed top-0 right-0 left-0 z-50 transition-colors duration-300 ${
+      animate={{ y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className={`fixed top-0 right-0 left-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-[#0A0A0A]/95 backdrop-blur-2xl py-3 border-b border-white/[0.04] shadow-[0_18px_60px_rgba(0,0,0,0.35)]'
+          ? 'bg-[#0A0A0A]/95 backdrop-blur-2xl py-3 border-b border-white/[0.04]'
           : 'py-5'
       }`}
     >
@@ -577,10 +648,10 @@ function ServicesSection() {
           </div>
         </HookPullSection>
 
-        <div className="space-y-5">
+        <div className="gsap-stacked-deck services-stack">
           {services.map((service, i) => (
-            <HookPullSection key={i} delay={i * 0.06} index={3 + i}>
-              <div className="group rounded-2xl border border-white/[0.04] hover:border-hook-red/15 bg-[#0F0F0F] hover:bg-[#111] transition-all duration-300 overflow-hidden service-card">
+            <HookPullSection key={i} delay={i * 0.06} index={3 + i} className="gsap-card-item">
+              <div className="group min-h-[100px] rounded-2xl border border-white/[0.04] hover:border-hook-red/15 bg-[#0F0F0F] hover:bg-[#111] transition-all duration-300 overflow-hidden service-card">
                 <div className="flex flex-col md:flex-row">
                   {/* Number + Icon */}
                   <div className="md:w-56 shrink-0 py-8 px-6 md:px-8 flex flex-row md:flex-col items-center gap-4 md:gap-5 border-b md:border-b-0 md:border-l border-white/[0.04] bg-[#0C0C0C] group-hover:bg-hook-red/[0.03] transition-colors duration-300">
@@ -632,10 +703,10 @@ function ProcessSection() {
           </div>
         </HookPullSection>
 
-        <div className="grid md:grid-cols-2 gap-5">
+        <div className="gsap-stacked-deck process-stack">
           {steps.map((step, i) => (
-            <HookPullSection key={i} delay={i * 0.1} index={11 + i}>
-              <div className="group rounded-2xl border border-white/[0.04] hover:border-hook-red/15 bg-[#0F0F0F] p-8 transition-all duration-300 relative overflow-hidden h-full">
+            <HookPullSection key={i} delay={i * 0.1} index={11 + i} className="gsap-card-item">
+              <div className="group min-h-[390px] rounded-2xl border border-white/[0.04] hover:border-hook-red/15 bg-[#0F0F0F] p-8 transition-all duration-300 relative overflow-hidden h-full">
                 <span className="absolute -top-3 -left-1 text-[100px] font-black text-white/[0.02] group-hover:text-hook-red/[0.04] transition-colors duration-300 leading-none select-none pointer-events-none">{step.num}</span>
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-6">
@@ -763,7 +834,7 @@ function FAQSection() {
 
   return (
     <section id="faq" className="py-28">
-      <div className="max-w-3xl mx-auto px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto px-6 lg:px-8">
         <HookPullSection index={17}>
           <div className="text-center mb-16">
             <SectionBadge text="الأسئلة الشائعة" />
@@ -772,12 +843,12 @@ function FAQSection() {
           </div>
         </HookPullSection>
 
-        <div className="space-y-3">
+        <div className="gsap-stacked-deck faq-stack">
           {faqs.map((faq, i) => (
-            <HookPullSection key={i} delay={i * 0.04} index={18 + i}>
-              <div className="rounded-xl border border-white/[0.04] hover:border-white/[0.08] bg-[#0F0F0F] overflow-hidden transition-colors">
-                <button onClick={() => setOpenIndex(openIndex === i ? null : i)} className="w-full flex items-center justify-between p-5 text-right">
-                  <span className="text-white font-bold text-[15px]">{faq.q}</span>
+            <HookPullSection key={i} delay={i * 0.04} index={18 + i} className="gsap-card-item">
+              <div className="faq-stack-card min-h-[100px] rounded-3xl border border-white/[0.04] hover:border-white/[0.08] bg-[#0F0F0F] overflow-hidden transition-colors">
+                <button onClick={() => setOpenIndex(openIndex === i ? null : i)} className="w-full flex items-center justify-between p-7 md:p-9 text-right">
+                  <span className="text-white font-black text-xl md:text-2xl leading-relaxed">{faq.q}</span>
                   <motion.div animate={{ rotate: openIndex === i ? 180 : 0 }} transition={{ duration: 0.2 }} className="shrink-0 mr-4">
                     <div className="w-7 h-7 rounded-full bg-hook-red/10 flex items-center justify-center">
                       <ChevronDown className="w-3.5 h-3.5 text-hook-red" />
@@ -787,7 +858,7 @@ function FAQSection() {
                 <AnimatePresence>
                   {openIndex === i && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}>
-                      <div className="px-5 pb-5 text-gray-400 text-sm leading-relaxed border-t border-white/[0.04] pt-4">{faq.a}</div>
+                      <div className="px-7 md:px-9 pb-8 text-gray-300 text-base leading-8 border-t border-white/[0.04] pt-6">{faq.a}</div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1023,18 +1094,17 @@ export default function Home() {
     <main className="relative min-h-screen flex flex-col bg-[#0A0A0A] overflow-x-hidden">
       <Navbar />
       <HookRig />
-      <HookCardsStack>
-        <HookStackCard><HeroSection /></HookStackCard>
-        <HookStackCard><MarqueeSection /></HookStackCard>
-        <HookStackCard><AboutSection /></HookStackCard>
-        <HookStackCard><ServicesSection /></HookStackCard>
-        <HookStackCard><ProcessSection /></HookStackCard>
-        <HookStackCard><StatsSection /></HookStackCard>
-        <HookStackCard><PartnersSection /></HookStackCard>
-        <HookStackCard><FAQSection /></HookStackCard>
-        <HookStackCard><CTASection /></HookStackCard>
-        <HookStackCard><ContactSection /></HookStackCard>
-      </HookCardsStack>
+      <GsapCardFields />
+      <HeroSection />
+      <MarqueeSection />
+      <AboutSection />
+      <ServicesSection />
+      <ProcessSection />
+      <StatsSection />
+      <PartnersSection />
+      <FAQSection />
+      <CTASection />
+      <ContactSection />
       <Footer />
       <ScrollToTop />
     </main>
