@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
 
 type User = {
   id: string;
