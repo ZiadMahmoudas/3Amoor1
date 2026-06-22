@@ -21,22 +21,51 @@ export default function HomePage() {
     <main className="relative min-h-screen bg-[#0A0A0A] overflow-x-hidden">
       <Navbar />
       <HookRig />
+
+      {/* لو ده بيحرك كروت بس خليه، لو بيبعت hook:pull شيله */}
       <GsapCardFields />
+
       <PinSectionsFlow />
 
-      <section className="pin-card hook-scene"><HeroSection /></section>
-      <section className="pin-card hook-scene"><MarqueeSection /></section>
-      <section className="pin-card hook-scene"><AboutSection /></section>
+      <section className="hook-scene">
+        <HeroSection />
+      </section>
 
-      <ServicesSection  />
-      <ProcessSection  />
+      <section className="hook-scene">
+        <MarqueeSection />
+      </section>
 
-      <section className="pin-card hook-scene"><StatsSection /></section>
-      <section className="pin-card hook-scene"><PartnersSection /></section>
+      <section className="hook-scene">
+        <AboutSection />
+      </section>
 
-      <FAQSection  />
-      <CTASection  />
-      <ContactSection  />
+      <section className="hook-scene">
+        <ServicesSection />
+      </section>
+
+      <section className="hook-scene">
+        <ProcessSection />
+      </section>
+
+      <section className="hook-scene">
+        <StatsSection />
+      </section>
+
+      <section className="hook-scene">
+        <PartnersSection />
+      </section>
+
+      <section className="hook-scene">
+        <FAQSection />
+      </section>
+
+      <section className="hook-scene">
+        <CTASection />
+      </section>
+
+      <section className="hook-scene">
+        <ContactSection />
+      </section>
 
       <Footer />
       <ScrollToTop />

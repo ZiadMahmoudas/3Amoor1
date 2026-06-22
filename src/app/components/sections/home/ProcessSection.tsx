@@ -39,7 +39,7 @@ export default function ProcessSection() {
           {steps.map((step, i) => (
             <div key={i} className="gsap-card-item">
               <div className="group min-h-[100px] rounded-3xl border border-white/[0.06] hover:border-hook-red/20 bg-[#0F0F0F] p-9 transition-all duration-300 relative overflow-hidden">
-                <span className="absolute -top-3 -left-1 text-[100px] font-black text-white/[1] group-hover:text-hook-red/[1] transition-colors duration-300 leading-none select-none pointer-events-none">{step.num}</span>
+                <span className="p-4 absolute -top-3 -left-1 text-[100px] font-black text-white/[0.5] group-hover:text-hook-red/[1] transition-colors duration-300 leading-none select-none pointer-events-none">{step.num}</span>
                 <div className="relative z-10">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-12 h-12 rounded-xl bg-hook-red/10 group-hover:bg-hook-red/15 flex items-center justify-center transition-colors shrink-0">
